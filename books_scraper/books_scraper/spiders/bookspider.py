@@ -1,6 +1,5 @@
 import scrapy
-import pandas as pd
-
+from books_scraper.items import BookItem
 
 class BookspiderSpider(scrapy.Spider):
     name = "bookspider"
@@ -22,19 +21,23 @@ class BookspiderSpider(scrapy.Spider):
         # xpath for price: response.xpath('//div[@class="col-sm-6 product_main"]/p/text()').get() 
         # xpath for description : response.xpath('//article/p[not(@class)]/text()').get()
         # xpath for stars : response.xpath('//p[contains(@class, "star-rating")]/@class').get()
+        # xpath for category : response.xpath('//ul[@class="breadcrumb"]/li[3]/a/text()').get()
         tabla = response.xpath('//table//td/text()').getall()
+        book_item = BookItem()
+                
+        book_item['url'] = response.url
+        book_item['title'] = response.xpath('//div[@class="col-sm-6 product_main"]/h1/text()').get()
+        book_item['price'] = response.xpath('//div[@class="col-sm-6 product_main"]/p/text()').get()
+        book_item['stars'] = response.xpath('//p[contains(@class, "star-rating")]/@class').get()
+        book_item['description'] = response.xpath('//article/p[not(@class)]/text()').get()
+        book_item['upc'] = tabla[0]
+        book_item['product_type'] = tabla[1]
+        book_item['price_excl_tax'] = tabla[2]
+        book_item['price_incl_tax'] = tabla [3]
+        book_item['tax'] = tabla [4]
+        book_item['availability'] = tabla [5]
+        book_item['number_of_reviews'] = tabla [6]
+        book_item['category'] = response.xpath('//ul[@class="breadcrumb"]/li[3]/a/text()').get()
         
-        yield {
-            'url' : response.url,
-            'title' : response.xpath('//div[@class="col-sm-6 product_main"]/h1/text()').get(),
-            'price' : response.xpath('//div[@class="col-sm-6 product_main"]/p/text()').get(),
-            'stars' : response.xpath('//p[contains(@class, "star-rating")]/@class').get(),
-            'description' : response.xpath('//article/p[not(@class)]/text()').get(),
-            'upc' : tabla[0],
-            'product_type' : tabla[1],
-            'price_excl_tax' : tabla[2],
-            'price_incl_tax' : tabla [3],
-            'tax' : tabla [4],
-            'availability' : tabla [5],
-            'number_of_reviews' : tabla [6]
-        }
+
+        yield book_item
